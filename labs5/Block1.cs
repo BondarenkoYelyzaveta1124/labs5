@@ -61,6 +61,7 @@ class Block1
     static string ToStringWithIntPart(MyFrac f)
     {
         MyFrac norm = Normalize(f);
+        if (norm.denom == 0) return "Undefined";
         long whole = norm.nom / norm.denom;
         long remainder = Math.Abs(norm.nom % norm.denom);
         if (norm.denom == 1) return $"({whole})";
@@ -88,7 +89,11 @@ class Block1
     }
     static MyFrac Divide(MyFrac f1, MyFrac f2)
     {
-        if (f2.nom == 0) Console.WriteLine("Cannot divide by a fraction with zero numerator.");
+        if (f2.nom == 0) 
+        {
+            Console.WriteLine("Error: Division by zero");
+            return (0, 0);
+        }
         return Normalize((f1.nom * f2.denom, f1.denom * f2.nom));
     }
     static MyFrac CalcExpr1(int n)
