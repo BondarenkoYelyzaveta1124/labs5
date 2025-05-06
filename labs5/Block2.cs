@@ -5,8 +5,8 @@ using System.Text;
 
 namespace labs5
 {
-    using Student = ( string LastName, string FirstName, string Patronymic, char Gender,
-        DateTime BirthDate, string Math, string Physics, string Informatics,int Money );
+    using Student = (string LastName, string FirstName, string Patronymic, char Gender,
+        DateTime BirthDate, string Math, string Physics, string Informatics, int Money);
 
     class Block2
     {
@@ -26,6 +26,11 @@ namespace labs5
 
                         string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+                        if (parts.Length < 9)
+                        {
+                            Console.WriteLine($"Недостатньо даних у рядку {lineNumber}: {line}");
+                            continue;
+                        }
                         try
                         {
                             string lastName = parts[0];
@@ -39,66 +44,73 @@ namespace labs5
                             else if (genderInput == "F" || genderInput == "Ж")
                                 gender = 'F';
 
-                            DateTime birthDate = DateTime.ParseExact(parts[4], "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None);
+                            DateTime birthDate = DateTime.ParseExact(parts[4], "dd.MM.yyyy", CultureInfo.InvariantCulture).Date;
 
-                            string Math = parts[5];
-                            string Physics = parts[6];
-                            string Informatics = parts[7];
+                            string mathGrade = parts[5];
+                            string physicsGrade = parts[6];
+                            string informaticsGrade = parts[7];
 
-                            int Money = int.Parse(parts[8]);
+                            int money = int.Parse(parts[8]);
 
-                            students.Add((lastName, firstName, patronymic, gender, birthDate,
-                                          Math, Physics, Informatics, Money));
+                            students.Add((lastName, firstName, patronymic, gender, birthDate, mathGrade, physicsGrade, informaticsGrade, money));
                         }
-                        catch (FormatException ex)
+                        catch (FormatException e)
                         {
-                            Console.WriteLine($"Попередження: Помилка формату в рядку {lineNumber}: {line}. Деталі: {ex.Message}");
+                            Console.WriteLine($"Помилка формату в рядку {lineNumber}: {line}");
                         }
                     }
                 }
             }
             catch (IOException ex)
             {
-                Console.WriteLine($"Помилка читання файлу: {ex.Message}");
+                Console.WriteLine("Помилка читання файлу: " + ex.Message);
             }
             return students;
         }
-        static void ProcessTask22(List<Student> students)
+        static void ProcessTask22(List<Student> students, string outFilePath)
         {
-            Console.WriteLine("\nЗавдання 22: Студенти молодше 18 з незданими іспитами");
-
             DateTime referenceDate = DateTime.Today;
             bool foundAny = false;
 
-            foreach (var student in students)
+            using (StreamWriter writer = new StreamWriter(outFilePath, false, Encoding.UTF8))
             {
-                int age = referenceDate.Year - student.BirthDate.Year;
-                if (student.BirthDate.Date > referenceDate.AddYears(-age)) age--;
-
-                bool isUnder18 = (age < 18);
-
-                int math = student.Math == "-" ? 2 : int.Parse(student.Math);
-                int physics = student.Physics == "-" ? 2 : int.Parse(student.Physics);
-                int informatics = student.Informatics == "-" ? 2 : int.Parse(student.Informatics);
-
-                bool failedExam = math < 3 || physics < 3 || informatics < 3;
-
-                if (isUnder18 && failedExam)
+                writer.WriteLine("Студенти молодше 18 років з незданими іспитами:");
+                foreach (var student in students)
                 {
-                    Console.WriteLine($"{student.LastName} {student.FirstName} {student.BirthDate:dd.MM.yyyy} (повних років: {age})");
-                    foundAny = true;
+                    int age = referenceDate.Year - student.BirthDate.Year;
+                    if (referenceDate.Month < student.BirthDate.Month ||
+                        (referenceDate.Month == student.BirthDate.Month && referenceDate.Day < student.BirthDate.Day))
+                    {
+                        age--;
+                    }
+
+                    bool isUnder18 = (age < 18);
+                    bool failedExam = student.Math == "-" || student.Physics == "-" || student.Informatics == "-" || 
+                        student.Physics == "2" || student.Informatics == "2" || student.Math == "2";
+                    if (isUnder18 && failedExam)
+                    {
+                        writer.WriteLine($"{student.LastName} {student.FirstName} {student.BirthDate:dd.MM.yyyy} (повних років: {age})");
+                        Console.WriteLine($"{student.LastName} {student.FirstName} {student.BirthDate:dd.MM.yyyy} (повних років: {age})");
+                        foundAny = true;
+                    }
+                }
+                if (!foundAny)
+                {
+                    writer.WriteLine();
+                    writer.WriteLine("Студентів, що відповідають умовам, не знайдено.");
                 }
             }
-            if (!foundAny)
-                Console.WriteLine("Студентів, що відповідають умовам, не знайдено.");
         }
         public static void Block22()
         {
             string inputFilePath = "input.txt";
+            string outFilePath = "tralala.txt";
 
             List<Student> allStudents = ReadStudentsFromFile(inputFilePath);
-
-            if (allStudents.Any()) ProcessTask22(allStudents);
+            if (allStudents.Any())
+                ProcessTask22(allStudents, outFilePath);
+            else
+                Console.WriteLine("Студентів не знайдено або вхідний файл порожній.");
         }
     }
 }

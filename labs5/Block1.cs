@@ -13,7 +13,11 @@ class Block1
         Console.WriteLine("Enter two numbers for second fraction (numerator and denominator):");
         long numb21 = long.Parse(Console.ReadLine());
         long numb22 = long.Parse(Console.ReadLine());
-
+        if(numb12 == 0 || numb22 == 0)
+        {
+            Console.WriteLine("Denominator cannot be zero.");
+            return;
+        }       
         MyFrac f1 = (numb11, numb12);
         MyFrac f2 = (numb21, numb22);
 
